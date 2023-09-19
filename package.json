@@ -1,0 +1,15 @@
+{
+  "name": "mi-xao-bo",
+  "version": "1.0.0",
+  "description": "mi xao bo of SangNM",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index"
+  },
+  "author": "dung aka cubi",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
