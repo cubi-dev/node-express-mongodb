@@ -60,10 +60,18 @@ exports.createNation = (req, res) => {
   );
 };
 exports.updateNationPatch = (req, res) => {
+  const body = req.body
   // Find id
   const id = req.params.id * 1;
   const nationToUpdate = nations.find((el) => el.id === id);
   // Err handle
+  if ("id" in body) {
+    res.status(500).json({
+      status: "fail",
+      message: "No update with id",
+    });
+    return;
+  }
   if (!nationToUpdate) {
     res.status(404).json({
       status: "fail",

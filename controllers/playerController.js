@@ -59,10 +59,18 @@ exports.createPlayer = (req, res) => {
   );
 };
 exports.updatePlayerPatch = (req, res) => {
+  const body = req.body
   // Find id
   const id = req.params.id * 1;
   const playerToUpdate = players.find((el) => el.id === id);
   // Err handle
+  if ("id" in body) {
+    res.status(500).json({
+      status: "fail",
+      message: "No update with id",
+    });
+    return;
+  }
   if (!playerToUpdate) {
     res.status(404).json({
       status: "fail",
