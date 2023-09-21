@@ -6,7 +6,10 @@ const playerController = require('./../controllers/playerController')
 const playerRouter = express.Router(); 
 // MIDDLEWARE
 playerRouter.use(bodyParser.json());
+// Check id param (withId function)
+playerRouter.param('id', playerController.checkID);
 
+// ROUTE
 playerRouter
 .route('/')
 .get(playerController.getAllPlayer)
@@ -17,7 +20,8 @@ playerRouter
 playerRouter
 .route('/:id')
 .get(playerController.getPlayerById)
-.patch(playerController.updatePlayerPatch)
+// must check body id not allowed
+.patch(playerController.checkBodyId,playerController.updatePlayerPatch)
 .delete(playerController.deletePlayerById)
 
 module.exports = playerRouter;

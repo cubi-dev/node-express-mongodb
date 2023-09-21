@@ -1,11 +1,14 @@
 const fs = require('fs')
 const express = require('express')
 const bodyParser = require('body-parser')
-const nationController = require('./../controllers/nationController')
+const nationController = require('./../controllers/nationController');
 // ROUTE FOR NATION
 const nationRouter = express.Router(); 
 // MIDDLEWARE
 nationRouter.use(bodyParser.json());
+// Check id param (withId function)
+nationRouter.param('id', nationController.checkID);
+
 // ROUTE
 nationRouter
 .route('/')
@@ -17,7 +20,8 @@ nationRouter
 nationRouter
 .route('/:id')
 .get(nationController.getNationById)
-.patch(nationController.updateNationPatch)
+// must check body id not allowed
+.patch(nationController.checkBodyId,nationController.updateNationPatch)
 .delete(nationController.deleteNationById)
 
 module.exports = nationRouter;

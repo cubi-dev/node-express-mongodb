@@ -3,7 +3,28 @@ const fs = require("fs");
 const players = JSON.parse(
   fs.readFileSync(`${__dirname}/../data/players.json`)
 );
-
+// middleware checkID 
+exports.checkID = (req, res, next, val) => {
+  console.log(`Player id is: ${val}`);
+  if (req.params.id * 1 > players.length) {
+    return res.status(404).json({
+      status: "fail",
+      message: "Invalid ID",
+    });
+  }
+  next(); 
+}
+// middleware checkID in req.body
+exports.checkBodyId = (req, res, next) => {
+  const body = req.body
+  if ("id" in body) {
+    return res.status(404).json({
+      status: "fail",
+      message: "No update with id",
+    });
+  }
+  next();
+}
 // PLAYER
 exports.getAllPlayer = (req, res) => {
   res.status(200).json({
@@ -20,13 +41,6 @@ exports.getPlayerById = (req, res) => {
   const id = req.params.id * 1;
   // 2. Find in tours data
   const player = players.find((el) => el.id === id);
-  // Err Handle
-  if (!player) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Invalid ID",
-    });
-  }
   // Success
   res.status(200).json({
     status: "success",
@@ -64,13 +78,6 @@ exports.updatePlayerPatch = (req, res) => {
   const id = req.params.id * 1;
   const playerToUpdate = players.find((el) => el.id === id);
   // Err handle
-  if ("id" in body) {
-    res.status(500).json({
-      status: "fail",
-      message: "No update with id",
-    });
-    return;
-  }
   if (!playerToUpdate) {
     res.status(404).json({
       status: "fail",

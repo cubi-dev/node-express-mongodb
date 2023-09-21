@@ -3,6 +3,28 @@ const fs = require("fs");
 const nations = JSON.parse(
   fs.readFileSync(`${__dirname}/../data/nations.json`)
 );
+// middleware checkID 
+exports.checkID = (req, res, next, val) => {
+  console.log(`Nation id is: ${val}`);
+  if (req.params.id * 1 > nations.length) {
+    return res.status(404).json({
+      status: "fail",
+      message: "Invalid ID",
+    });
+  }
+  next(); 
+}
+// middleware checkID in req.body
+exports.checkBodyId = (req, res, next) => {
+  const body = req.body
+  if ("id" in body) {
+    return res.status(404).json({
+      status: "fail",
+      message: "No update with id",
+    });
+  }
+  next();
+}
 
 // NATIONS
 exports.getAllNation = (req, res) => {
@@ -21,13 +43,6 @@ exports.getNationById = (req, res) => {
   const id = req.params.id * 1;
   // 2. Find in tours data
   const nation = nations.find((el) => el.id === id);
-  // Err Handle
-  if (!nation) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Invalid ID",
-    });
-  }
   // Success
   res.status(200).json({
     status: "success",
@@ -60,18 +75,10 @@ exports.createNation = (req, res) => {
   );
 };
 exports.updateNationPatch = (req, res) => {
-  const body = req.body
   // Find id
   const id = req.params.id * 1;
   const nationToUpdate = nations.find((el) => el.id === id);
   // Err handle
-  if ("id" in body) {
-    res.status(500).json({
-      status: "fail",
-      message: "No update with id",
-    });
-    return;
-  }
   if (!nationToUpdate) {
     res.status(404).json({
       status: "fail",
