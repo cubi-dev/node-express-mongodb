@@ -7,7 +7,7 @@ const nationRouter = express.Router();
 // MIDDLEWARE
 nationRouter.use(bodyParser.json());
 // Check id param (withId function)
-nationRouter.param('id', nationController.checkID);
+// nationRouter.param('id', nationController.checkID);
 
 // ROUTE
 nationRouter
