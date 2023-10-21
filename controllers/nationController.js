@@ -1,22 +1,10 @@
+const Nation = require("./../models/nationsModel");
+
 const fs = require("fs");
-//Convert to JS Obj (blocking|first time)
-const nations = JSON.parse(
-  fs.readFileSync(`${__dirname}/../data/nations.json`)
-);
-// middleware checkID 
-exports.checkID = (req, res, next, val) => {
-  console.log(`Nation id is: ${val}`);
-  if (req.params.id * 1 > nations.length) {
-    return res.status(404).json({
-      status: "fail",
-      message: "Invalid ID",
-    });
-  }
-  next(); 
-}
+
 // middleware checkID in req.body
 exports.checkBodyId = (req, res, next) => {
-  const body = req.body
+  const body = req.body;
   if ("id" in body) {
     return res.status(404).json({
       status: "fail",
@@ -24,161 +12,124 @@ exports.checkBodyId = (req, res, next) => {
     });
   }
   next();
-}
+};
 
 // NATIONS
-exports.getAllNation = (req, res) => {
-  // Jsend
-  res.status(200).json({
-    status: "success",
-    results: nations.length,
-    data: {
-      nations: nations,
-    },
-  });
-};
-exports.getNationById = (req, res) => {
-  console.log(req.params);
-  // 1. Convert id to number
-  const id = req.params.id * 1;
-  // 2. Find in tours data
-  const nation = nations.find((el) => el.id === id);
-  // Success
-  res.status(200).json({
-    status: "success",
-    data: {
-      nations: nation,
-    },
-  });
-};
-exports.createNation = (req, res) => {
-  //  1. CREATE NEW OBJECT
-  //because we dont have db to automatically add newId
-  const newId = nations[nations.length - 1].id + 1;
-  //newTour(body.req) | Object.assign(to create a new object by merging two existing objects)
-  const newNation = Object.assign({ id: newId }, req.body);
-  // 2. PUT THE NEW OBJECT IN TO ARRAY OBJECT
-  nations.push(newNation);
-  // 3. WRITE IT TO FILE (non-blocking)
-  fs.writeFile(
-    `${__dirname}/../data/nations.json`,
-    JSON.stringify(nations),
-    (err) => {
-      //201 - created
-      res.status(201).json({
-        status: "success",
-        data: {
-          nations: newNation,
-        },
-      });
-    }
-  );
-};
-exports.updateNationPatch = (req, res) => {
-  // Find id
-  const id = req.params.id * 1;
-  const nationToUpdate = nations.find((el) => el.id === id);
-  // Err handle
-  if (!nationToUpdate) {
-    res.status(404).json({
+exports.getAllNation = async (req, res) => {
+  try {
+    const nations = await Nation.find();
+    // Jsend
+    res.status(200).json({
+      status: "success",
+      results: nations.length,
+      data: {
+        nations: nations,
+      },
+    });
+  } catch (error) {
+    res.status.json({
       status: "fail",
-      message: "No tour object with" + id + "is not found",
+      message: error,
     });
   }
-  // Find index correspond with nation's id in data
-  const nationIndex = nations.indexOf(nationToUpdate);
-  // Update the nation object directly
-  Object.assign(nationToUpdate, req.body);
-  // Update the array with the modified object
-  nations[nationIndex] = nationToUpdate;
-  fs.writeFile(
-    `${__dirname}/../data/nations.json`,
-    JSON.stringify(nations),
-    (err) => {
-      res.status(200).json({
-        status: "success",
-        data: {
-          nations: nationToUpdate,
-        },
-      });
-    }
-  );
+};
+exports.getNationById = async (req, res) => {
+  try {
+    const nation = await Nation.findById(req.params.id); //Nation.findOne({ _id: req.params.id })
+    // Success
+    res.status(200).json({
+      status: "success",
+      data: {
+        nations: nation,
+      },
+    });
+  } catch (error) {
+    res.status.json({
+      status: 'fail',
+      message: error,
+    });
+  }
+};
+exports.createNation = async (req, res) => {
+  try {
+    const newNation = await Nation.create(req.body)
+    //201 - created
+    res.status(201).json({
+      status: "success",
+      data: {
+        nations: newNation,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error,
+    });
+  }
+};
+exports.updateNationPatch = async (req, res) => {
+  try {
+    const nationToUpdate = await Nation.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true, //Cái này để validator(vd nếu như price thì k thể để String đc )
+    })
+    res.status(200).json({
+      status: "success",
+      data: {
+        players: nationToUpdate,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error,
+    });
+  }
+  
+ 
 };
 exports.updateNationPut = (req, res) => {
   res.statusCode = 403;
   res.end("PUT operation not supported on /nations");
 };
-exports.deleteAllNations = (req, res) => {
-  // Clear the nations array
-  nations.length = 0;
-  // Update the JSON file with an empty array
-  fs.writeFile(
-    `${__dirname}/../data/nations.json`,
-    JSON.stringify(nations),
-    (err) => {
-      if (err) {
-        // Handle any errors that may occur during file write
-        res.status(500).json({
-          status: "error",
-          message: "Failed to delete all nations",
-        });
-      } else {
-        // Success response
-        res.status(203).json({
-          status: "success",
-          data: {
-            message: "All nations deleted successfully",
-          },
-        });
-      }
-    }
-  );
-};
-exports.deleteNationById = (req, res) => {
+// exports.deleteAllNations = (req, res) => {
+//   // Clear the nations array
+//   nations.length = 0;
+//   // Update the JSON file with an empty array
+//   fs.writeFile(
+//     `${__dirname}/../data/nations.json`,
+//     JSON.stringify(nations),
+//     (err) => {
+//       if (err) {
+//         // Handle any errors that may occur during file write
+//         res.status(500).json({
+//           status: "error",
+//           message: "Failed to delete all nations",
+//         });
+//       } else {
+//         // Success response
+//         res.status(203).json({
+//           status: "success",
+//           data: {
+//             message: "All nations deleted successfully",
+//           },
+//         });
+//       }
+//     }
+//   );
+// };
+exports.deleteNationById = async (req, res) => {
   try {
-    // Check if nations is defined and initialize it if necessary
-    if (!Array.isArray(nations)) {
-      nations = [];
-    }
-
-    const id = req.params.id * 1;
-    const nationToDelete = nations.find((el) => el.id === id);
-
-    if (!nationToDelete) {
-      return res.status(404).json({
-        status: "fail",
-        message: "No nation with ID " + id + " is found to delete",
-      });
-    }
-
-    const index = nations.indexOf(nationToDelete);
-
-    nations.splice(index, 1);
-
-    fs.writeFile(
-      `${__dirname}/../data/nations.json`,
-      JSON.stringify(nations),
-      (err) => {
-        if (err) {
-          return res.status(500).json({
-            status: "error",
-            message: "Failed to delete the nation",
-          });
-        }
-
-        return res.status(203).json({
-          status: "success",
-          data: {
-            message: "delete success " + id,
-          },
-        });
-      }
-    );
+    await Nation.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      //204-no-content
+      status: 'success',
+      data: null,
+    });
   } catch (error) {
-    console.error(error); // Log any unexpected errors
-    return res.status(500).json({
-      status: "error",
-      message: "An unexpected error occurred",
+    res.status.json({
+      status: 'fail',
+      message: error,
     });
   }
 };

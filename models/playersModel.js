@@ -24,5 +24,5 @@ const playerSchema = new mongoose.Schema({
 
 })
 // Always use uppercase for model name and variable
-const Player = mongoose.model('Player', nationSchema); 
+const Player = mongoose.model('Player', playerSchema); 
 module.exports = Player; 
